@@ -1,3 +1,13 @@
+:root {
+  --navy: #2c3e6b;
+  --navy-dark: #1e2d52;
+  --gold: #c9913a;
+  --gold-light: #e8b45a;
+  --red: #9b2b1a;
+  --cream: #f7f0e4;
+  --card-bg: #fffdf8;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,21 +16,23 @@
 
 body {
   font-family: 'Helvetica Neue', Arial, sans-serif;
-  background: #f5f0eb;
-  color: #333;
+  background: var(--cream);
+  color: #2a2a2a;
 }
 
 /* ヘッダー */
 header {
-  background: #8b0000;
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 60%, #3a4f7c 100%);
   color: white;
   padding: 16px 24px;
   text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 header h1 {
   font-size: 1.5rem;
   margin-bottom: 12px;
+  letter-spacing: 0.05em;
 }
 
 /* タブナビゲーション */
@@ -31,19 +43,22 @@ nav {
 }
 
 .tab-btn {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.9);
+  border: 1px solid rgba(255,255,255,0.35);
   padding: 8px 24px;
   border-radius: 20px;
   cursor: pointer;
   font-size: 0.95rem;
+  transition: all 0.2s;
 }
 
 .tab-btn.active {
-  background: white;
-  color: #8b0000;
+  background: var(--gold);
+  color: white;
+  border-color: var(--gold);
   font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 /* メインエリア */
@@ -54,16 +69,16 @@ main {
 }
 
 section {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(44,62,107,0.1);
 }
 
 h2 {
   font-size: 1.1rem;
   margin-bottom: 16px;
-  color: #8b0000;
+  color: var(--navy);
 }
 
 /* タブの表示切替 */
@@ -103,7 +118,7 @@ textarea {
 }
 
 button[type="submit"] {
-  background: #8b0000;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
   color: white;
   border: none;
   padding: 12px;
@@ -111,15 +126,17 @@ button[type="submit"] {
   font-size: 1rem;
   cursor: pointer;
   margin-top: 8px;
+  box-shadow: 0 2px 6px rgba(44,62,107,0.3);
+  transition: opacity 0.2s;
 }
 
 button[type="submit"]:hover {
-  background: #a00000;
+  opacity: 0.88;
 }
 
 /* 現在地ボタン */
 #get-location-btn {
-  background: #2c7a2c;
+  background: var(--gold);
   color: white;
   border: none;
   padding: 10px 16px;
@@ -128,28 +145,31 @@ button[type="submit"]:hover {
   font-size: 0.95rem;
   width: 100%;
   margin-top: 4px;
+  transition: opacity 0.2s;
 }
 
 #get-location-btn:hover {
-  background: #3a9a3a;
+  opacity: 0.85;
 }
 
 #location-status {
   font-size: 0.85rem;
-  color: #2c7a2c;
+  color: var(--navy);
   margin-top: 4px;
   font-weight: normal;
 }
 
 /* 御朱印カード */
 .goshuin-card {
-  border: 1px solid #eee;
+  border: 1px solid #e8e0d0;
   border-radius: 10px;
   padding: 16px;
   margin-bottom: 12px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
+  background: var(--card-bg);
+  box-shadow: 0 1px 4px rgba(44,62,107,0.07);
 }
 
 .goshuin-card img {
@@ -164,7 +184,7 @@ button[type="submit"]:hover {
 .no-photo {
   width: 80px;
   height: 80px;
-  background: #f0e8e8;
+  background: linear-gradient(135deg, #e8e4f0 0%, #ddd8e8 100%);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -176,6 +196,7 @@ button[type="submit"]:hover {
 .card-info h3 {
   font-size: 1rem;
   margin-bottom: 6px;
+  color: var(--navy-dark);
 }
 
 .card-info p {
@@ -185,7 +206,7 @@ button[type="submit"]:hover {
 }
 
 .card-info a {
-  color: #8b0000;
+  color: var(--navy);
 }
 
 /* 地図 */
@@ -258,7 +279,7 @@ button[type="submit"]:hover {
   padding: 12px;
   border-radius: 8px;
   border: none;
-  background: #8b0000;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
   color: white;
   cursor: pointer;
   font-size: 1rem;
@@ -390,7 +411,7 @@ button[type="submit"]:hover {
 }
 
 #geocode-btn {
-  background: #2c5f8b;
+  background: var(--navy);
   color: white;
   border: none;
   padding: 10px 12px;
@@ -430,9 +451,9 @@ button[type="submit"]:hover {
 }
 
 .sort-btn.active {
-  background: #8b0000;
+  background: var(--navy);
   color: white;
-  border-color: #8b0000;
+  border-color: var(--navy);
 }
 
 /* 場所プレビューマップ */
@@ -454,7 +475,7 @@ button[type="submit"]:hover {
 
 /* 編集ボタン（モーダル内） */
 #edit-geocode-btn {
-  background: #2c5f8b;
+  background: var(--navy);
   color: white;
   border: none;
   padding: 10px 12px;
@@ -465,7 +486,7 @@ button[type="submit"]:hover {
 }
 
 #edit-get-location-btn {
-  background: #2c7a2c;
+  background: var(--gold);
   color: white;
   border: none;
   padding: 10px 16px;
@@ -474,11 +495,12 @@ button[type="submit"]:hover {
   font-size: 0.95rem;
   width: 100%;
   margin-top: 4px;
+  transition: opacity 0.2s;
 }
 
 #edit-location-status {
   font-size: 0.85rem;
-  color: #2c7a2c;
+  color: var(--navy);
   margin-top: 4px;
   font-weight: normal;
 }
@@ -490,4 +512,76 @@ button[type="submit"]:hover {
   border-radius: 8px;
   border: 1px solid #ddd;
   margin-top: 8px;
+}
+
+/* 複数写真グリッド */
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.photo-thumb {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.photo-thumb img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  line-height: 22px;
+  text-align: center;
+  padding: 0;
+}
+
+.count-msg {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+/* カードの複数写真表示 */
+.card-photo-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.card-photo-wrap img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.photo-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 0.7rem;
+  padding: 1px 5px;
+  border-radius: 10px;
 }

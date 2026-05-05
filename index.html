@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>御朱印コレクション</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -65,14 +67,14 @@
         <button type="button" id="get-location-btn">📍 現在地を取得する</button>
         <span id="location-status"></span>
         <div id="register-map-preview" class="map-preview hidden"></div>
-        <label>写真</label>
+        <label>写真（最大3枚） <span id="photo-count-msg" class="count-msg"></span></label>
         <div class="photo-buttons">
           <button type="button" id="camera-btn">📷 カメラで撮影</button>
           <button type="button" id="gallery-btn">🖼️ ギャラリーから選ぶ</button>
         </div>
         <input type="file" id="photo" accept="image/*" style="display:none">
         <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none">
-        <div id="photo-preview"></div>
+        <div id="photo-preview" class="photo-grid"></div>
         <label>メモ
           <textarea id="memo" placeholder="例：初詣で訪問"></textarea>
         </label>
@@ -108,14 +110,14 @@
           <label>メモ
             <textarea id="edit-memo"></textarea>
           </label>
-          <label>写真を変更（任意）</label>
+          <label>写真（最大3枚） <span id="edit-photo-count-msg" class="count-msg"></span></label>
           <div class="photo-buttons">
             <button type="button" id="edit-camera-btn">📷 カメラで撮影</button>
             <button type="button" id="edit-gallery-btn">🖼️ ギャラリーから選ぶ</button>
           </div>
           <input type="file" id="edit-photo" accept="image/*" style="display:none">
           <input type="file" id="edit-photo-camera" accept="image/*" capture="environment" style="display:none">
-          <div id="edit-photo-preview"></div>
+          <div id="edit-photo-preview" class="photo-grid"></div>
           <div class="modal-buttons">
             <button type="button" id="edit-cancel-btn">キャンセル</button>
             <button type="submit">保存する</button>
