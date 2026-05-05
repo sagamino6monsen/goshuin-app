@@ -378,4 +378,24 @@ button[type="submit"]:hover {
     padding: 20px 16px;
     width: 95%;
   }
+}/* 住所入力 */
+.location-options {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.location-options input {
+  flex: 1;
+}
+
+#geocode-btn {
+  background: #2c5f8b;
+  color: white;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.9rem;
 }

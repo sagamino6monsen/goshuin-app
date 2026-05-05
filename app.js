@@ -5,7 +5,6 @@ function loadData() {
   const data = localStorage.getItem('goshuinList');
   return data ? JSON.parse(data) : [];
 }
-
 function saveData(list) {
   localStorage.setItem('goshuinList', JSON.stringify(list));
 }
@@ -13,13 +12,13 @@ function saveData(list) {
 // ============================
 // タブ切り替え
 // ============================
-function showTab(tabName) {
+function showTab(tabName, e) {
   document.getElementById('tab-list').classList.add('hidden');
   document.getElementById('tab-map').classList.add('hidden');
   document.getElementById('tab-form').classList.add('hidden');
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById('tab-' + tabName).classList.remove('hidden');
-  event.target.classList.add('active');
+  e.target.classList.add('active');
   if (tabName === 'map') setTimeout(() => renderMap(), 100);
 }
 
@@ -28,10 +27,8 @@ function showTab(tabName) {
 // ============================
 function renderList() {
   const list = loadData();
+  document.getElementById('count').textContent = list.length;
   const container = document.getElementById('goshuin-list');
-  const countEl = document.getElementById('count');
-
-  countEl.textContent = list.length;
   container.innerHTML = '';
 
   if (list.length === 0) {
@@ -89,44 +86,113 @@ function renderMap() {
   }
 
   if (list.length === 0) {
-    alert('地図に表示できる場所がありません。\n登録時に「現在地を取得」してください。');
+    alert('地図に表示できる場所がありません。\n登録時に場所を取得してください。');
     return;
   }
 
   list.forEach(item => {
     L.marker([item.lat, item.lng])
       .addTo(mapInstance)
-      .bindPopup(`
-        <strong>${item.shrineName}</strong><br>
-        📅 ${item.visitDate}<br>
-        📍 ${item.location || ''}
-      `);
+      .bindPopup(`<strong>${item.shrineName}</strong><br>📅 ${item.visitDate}<br>📍 ${item.location || ''}`);
   });
 
-  const bounds = list.map(item => [item.lat, item.lng]);
-  mapInstance.fitBounds(bounds, { padding: [40, 40] });
+  mapInstance.fitBounds(list.map(item => [item.lat, item.lng]), { padding: [40, 40] });
 }
 
 // ============================
-// 現在地取得
+// 住所→座標変換（Nominatim）
+// ============================
+async function geocodeAddress(address) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    }
+  } catch (e) {}
+  return null;
+}
+
+// ============================
+// 位置情報
 // ============================
 let currentLat = null;
 let currentLng = null;
 
+document.getElementById('geocode-btn').addEventListener('click', async () => {
+  const address = document.getElementById('address-input').value.trim();
+  if (!address) { alert('住所や神社名を入力してください'); return; }
+  const status = document.getElementById('location-status');
+  status.textContent = '検索中...';
+  const result = await geocodeAddress(address);
+  if (result) {
+    currentLat = result.lat;
+    currentLng = result.lng;
+    status.textContent = `✅ 取得完了（${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}）`;
+  } else {
+    status.textContent = '❌ 場所が見つかりませんでした';
+  }
+});
+
 document.getElementById('get-location-btn').addEventListener('click', () => {
   const status = document.getElementById('location-status');
   status.textContent = '取得中...';
-
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       currentLat = pos.coords.latitude;
       currentLng = pos.coords.longitude;
-      status.textContent = `✅ 取得完了（${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}）`;
+      status.textContent = `✅ 現在地を取得しました`;
     },
-    () => {
-      status.textContent = '❌ 取得できませんでした';
-    }
+    () => { status.textContent = '❌ 取得できませんでした'; }
   );
+});
+
+// ============================
+// 写真選択（グローバル変数で管理）
+// ============================
+let selectedPhotoData = null;
+let editPhotoData = null;
+
+function handlePhotoSelect(file, previewId, isEdit) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    if (isEdit) {
+      editPhotoData = e.target.result;
+    } else {
+      selectedPhotoData = e.target.result;
+    }
+    document.getElementById(previewId).innerHTML =
+      `<img src="${e.target.result}" alt="プレビュー">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('camera-btn').addEventListener('click', () => {
+  document.getElementById('photo-camera').click();
+});
+document.getElementById('gallery-btn').addEventListener('click', () => {
+  document.getElementById('photo').click();
+});
+document.getElementById('photo').addEventListener('change', (e) => {
+  handlePhotoSelect(e.target.files[0], 'photo-preview', false);
+});
+document.getElementById('photo-camera').addEventListener('change', (e) => {
+  handlePhotoSelect(e.target.files[0], 'photo-preview', false);
+});
+
+document.getElementById('edit-camera-btn').addEventListener('click', () => {
+  document.getElementById('edit-photo-camera').click();
+});
+document.getElementById('edit-gallery-btn').addEventListener('click', () => {
+  document.getElementById('edit-photo').click();
+});
+document.getElementById('edit-photo').addEventListener('change', (e) => {
+  handlePhotoSelect(e.target.files[0], 'edit-photo-preview', true);
+});
+document.getElementById('edit-photo-camera').addEventListener('change', (e) => {
+  handlePhotoSelect(e.target.files[0], 'edit-photo-preview', true);
 });
 
 // ============================
@@ -139,66 +205,66 @@ document.getElementById('goshuin-form').addEventListener('submit', function(e) {
   const visitDate  = document.getElementById('visit-date').value;
   const location   = document.getElementById('location').value.trim();
   const memo       = document.getElementById('memo').value.trim();
-  const photoFile = document.getElementById('photo').files[0]
-    || document.getElementById('photo-camera').files[0];
+
   const list = loadData();
   const duplicate = list.find(item => item.shrineName === shrineName);
   if (duplicate) {
     if (!confirm(`「${shrineName}」はすでに登録されています。\n（${duplicate.visitDate}）\n\nそれでも登録しますか？`)) return;
   }
 
-  if (photoFile) {
-    const reader = new FileReader();
-    reader.onload = (event) => saveGoshuin(shrineName, visitDate, location, memo, event.target.result);
-    reader.readAsDataURL(photoFile);
-  } else {
-    saveGoshuin(shrineName, visitDate, location, memo, null);
-  }
-});
-
-function saveGoshuin(shrineName, visitDate, location, memo, photo) {
-  const list = loadData();
-  list.push({
+  const newItem = {
     id: Date.now(),
-    shrineName, visitDate, location, memo, photo,
+    shrineName, visitDate, location, memo,
+    photo: selectedPhotoData,
     lat: currentLat,
     lng: currentLng
-  });
+  };
+
+  list.push(newItem);
   saveData(list);
+
+  // リセット
   document.getElementById('goshuin-form').reset();
   document.getElementById('location-status').textContent = '';
+  document.getElementById('photo-preview').innerHTML = '';
+  document.getElementById('address-input').value = '';
+  selectedPhotoData = null;
   currentLat = null;
   currentLng = null;
+
   renderList();
   alert(`「${shrineName}」を登録しました！`);
-}
+});
 
 // ============================
 // 削除
 // ============================
 function deleteGoshuin(id) {
   if (!confirm('この御朱印を削除しますか？')) return;
-  const list = loadData().filter(item => String(item.id) !== String(id));
-  saveData(list);
+  saveData(loadData().filter(item => String(item.id) !== String(id)));
   renderList();
 }
 
 // ============================
-// 編集モーダル（変数でID管理）
+// 編集モーダル
 // ============================
-let currentEditId = null;  // ← 隠しフィールドの代わりに変数で管理
+let currentEditId = null;
 
 function openEditModal(id) {
   const list = loadData();
   const item = list.find(item => String(item.id) === String(id));
   if (!item) return;
 
-  currentEditId = item.id;  // ← 変数に保存
+  currentEditId = item.id;
+  editPhotoData = null;
 
   document.getElementById('edit-shrine-name').value = item.shrineName;
   document.getElementById('edit-visit-date').value = item.visitDate;
   document.getElementById('edit-location').value = item.location || '';
   document.getElementById('edit-memo').value = item.memo || '';
+  document.getElementById('edit-photo-preview').innerHTML = item.photo
+    ? `<img src="${item.photo}" alt="現在の写真">`
+    : '';
 
   document.getElementById('edit-modal').classList.remove('hidden');
 }
@@ -206,21 +272,17 @@ function openEditModal(id) {
 function closeEditModal() {
   document.getElementById('edit-modal').classList.add('hidden');
   currentEditId = null;
+  editPhotoData = null;
 }
 
 document.getElementById('edit-cancel-btn').addEventListener('click', closeEditModal);
-
 document.getElementById('edit-modal').addEventListener('click', function(e) {
   if (e.target === this) closeEditModal();
 });
 
 document.getElementById('edit-form').addEventListener('submit', function(e) {
   e.preventDefault();
-
-  if (!currentEditId) {
-    alert('エラー：編集対象が不明です。もう一度✏️を押してください。');
-    return;
-  }
+  if (!currentEditId) return;
 
   const list = loadData();
   const index = list.findIndex(item => String(item.id) === String(currentEditId));
@@ -230,6 +292,7 @@ document.getElementById('edit-form').addEventListener('submit', function(e) {
   list[index].visitDate  = document.getElementById('edit-visit-date').value;
   list[index].location   = document.getElementById('edit-location').value.trim();
   list[index].memo       = document.getElementById('edit-memo').value.trim();
+  if (editPhotoData) list[index].photo = editPhotoData;
 
   saveData(list);
   closeEditModal();
@@ -238,34 +301,6 @@ document.getElementById('edit-form').addEventListener('submit', function(e) {
 });
 
 // ============================
-// ============================
-// カメラ・ギャラリーボタン
-// ============================
-document.getElementById('camera-btn').addEventListener('click', () => {
-  document.getElementById('photo-camera').click();
-});
-
-document.getElementById('gallery-btn').addEventListener('click', () => {
-  document.getElementById('photo').click();
-});
-
-function handlePhotoSelect(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('photo-preview').innerHTML =
-      `<img src="${e.target.result}" alt="プレビュー">`;
-  };
-  reader.readAsDataURL(file);
-}
-
-document.getElementById('photo').addEventListener('change', (e) => {
-  handlePhotoSelect(e.target.files[0]);
-});
-
-document.getElementById('photo-camera').addEventListener('change', (e) => {
-  handlePhotoSelect(e.target.files[0]);
-});
 // 初期表示
 // ============================
 renderList();
