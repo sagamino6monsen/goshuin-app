@@ -9,7 +9,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-
   <header>
     <h1>⛩️ 御朱印コレクション</h1>
     <nav>
@@ -22,7 +21,17 @@
   <main>
     <!-- 一覧タブ -->
     <section id="tab-list">
-      <h2>いただいた御朱印一覧 <span id="count">0</span>件</h2>
+      <div class="list-header">
+        <h2>いただいた御朱印一覧 <span id="count">0</span>件</h2>
+        <input type="text" id="search-input" placeholder="🔍 神社・お寺の名前で検索" oninput="renderList()">
+        <div class="sort-buttons">
+          <span>並び替え：</span>
+          <button class="sort-btn active" onclick="sortList('date-desc', event)">新しい順</button>
+          <button class="sort-btn" onclick="sortList('date-asc', event)">古い順</button>
+          <button class="sort-btn" onclick="sortList('name', event)">名前順</button>
+          <button class="sort-btn" onclick="sortList('location', event)">地域順</button>
+        </div>
+      </div>
       <div id="goshuin-list"></div>
     </section>
 
@@ -36,22 +45,26 @@
     <section id="tab-form" class="hidden">
       <h2>新しい御朱印を登録</h2>
       <form id="goshuin-form">
-        <label>神社・お寺の名前
+        <label>神社・お寺の名前 *
           <input type="text" id="shrine-name" placeholder="例：明治神宮" required>
         </label>
-        <label>いただいた日付
+        <label>いただいた日付 *
           <input type="date" id="visit-date" required>
         </label>
         <label>都道府県
           <input type="text" id="location" placeholder="例：東京都">
         </label>
+        <label>市区町村
+          <input type="text" id="city" placeholder="例：渋谷区">
+        </label>
         <label>場所を地図に登録</label>
         <div class="location-options">
-          <input type="text" id="address-input" placeholder="住所や神社名を入力（例：明治神宮）">
-          <button type="button" id="geocode-btn">🔍 住所から取得</button>
+          <input type="text" id="address-input" placeholder="神社名や住所を入力（例：明治神宮）">
+          <button type="button" id="geocode-btn">🔍 検索</button>
         </div>
         <button type="button" id="get-location-btn">📍 現在地を取得する</button>
         <span id="location-status"></span>
+        <div id="register-map-preview" class="map-preview hidden"></div>
         <label>写真</label>
         <div class="photo-buttons">
           <button type="button" id="camera-btn">📷 カメラで撮影</button>
@@ -81,6 +94,17 @@
           <label>都道府県
             <input type="text" id="edit-location">
           </label>
+          <label>市区町村
+            <input type="text" id="edit-city">
+          </label>
+          <label>場所を地図に登録</label>
+          <div class="location-options">
+            <input type="text" id="edit-address-input" placeholder="神社名や住所を入力">
+            <button type="button" id="edit-geocode-btn">🔍 検索</button>
+          </div>
+          <button type="button" id="edit-get-location-btn">📍 現在地を取得する</button>
+          <span id="edit-location-status"></span>
+          <div id="edit-map-preview" class="map-preview hidden"></div>
           <label>メモ
             <textarea id="edit-memo"></textarea>
           </label>

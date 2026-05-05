@@ -398,4 +398,96 @@ button[type="submit"]:hover {
   cursor: pointer;
   white-space: nowrap;
   font-size: 0.9rem;
+}/* 並び替えボタン */
+.list-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.list-header h2 {
+  margin-bottom: 0;
+}
+
+.sort-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.sort-btn {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 4px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: #555;
+}
+
+.sort-btn.active {
+  background: #8b0000;
+  color: white;
+  border-color: #8b0000;
+}
+
+/* 場所プレビューマップ */
+.map-preview {
+  height: 200px;
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid #ddd;
+}
+
+/* 検索ボックス */
+#search-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+/* 編集ボタン（モーダル内） */
+#edit-geocode-btn {
+  background: #2c5f8b;
+  color: white;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+#edit-get-location-btn {
+  background: #2c7a2c;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  width: 100%;
+  margin-top: 4px;
+}
+
+#edit-location-status {
+  font-size: 0.85rem;
+  color: #2c7a2c;
+  margin-top: 4px;
+  font-weight: normal;
+}
+
+#edit-photo-preview img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-top: 8px;
 }
