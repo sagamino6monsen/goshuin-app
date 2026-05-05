@@ -1,0 +1,381 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f0eb;
+  color: #333;
+}
+
+/* ヘッダー */
+header {
+  background: #8b0000;
+  color: white;
+  padding: 16px 24px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+}
+
+/* タブナビゲーション */
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tab-btn {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.4);
+  padding: 8px 24px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.tab-btn.active {
+  background: white;
+  color: #8b0000;
+  font-weight: bold;
+}
+
+/* メインエリア */
+main {
+  max-width: 800px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  color: #8b0000;
+}
+
+/* タブの表示切替 */
+.hidden {
+  display: none !important;
+}
+
+/* フォーム */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="file"],
+textarea {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+textarea {
+  height: 80px;
+  resize: vertical;
+}
+
+button[type="submit"] {
+  background: #8b0000;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+button[type="submit"]:hover {
+  background: #a00000;
+}
+
+/* 現在地ボタン */
+#get-location-btn {
+  background: #2c7a2c;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  width: 100%;
+  margin-top: 4px;
+}
+
+#get-location-btn:hover {
+  background: #3a9a3a;
+}
+
+#location-status {
+  font-size: 0.85rem;
+  color: #2c7a2c;
+  margin-top: 4px;
+  font-weight: normal;
+}
+
+/* 御朱印カード */
+.goshuin-card {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.goshuin-card img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.no-photo {
+  width: 80px;
+  height: 80px;
+  background: #f0e8e8;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.card-info h3 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.card-info p {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.card-info a {
+  color: #8b0000;
+}
+
+/* 地図 */
+#map {
+  height: 450px;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+/* 削除ボタン */
+.delete-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  opacity: 0.4;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+}
+/* モーダル */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.modal-buttons button[type="button"] {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #333;
+}
+
+.modal-buttons button[type="submit"] {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #8b0000;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* 編集ボタン */
+.edit-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  opacity: 0.4;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.edit-btn:hover {
+  opacity: 1;
+}
+
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: auto;
+}/* 写真ボタン */
+.photo-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.photo-buttons button {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.photo-buttons button:hover {
+  background: #f5f0eb;
+}
+
+/* 写真プレビュー */
+#photo-preview img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-top: 8px;
+}
+
+/* ============================
+   スマホ対応
+   ============================ */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.2rem;
+  }
+
+  .tab-btn {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  main {
+    margin: 12px auto;
+    padding: 0 10px;
+  }
+
+  section {
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  /* カードをスマホ向けに調整 */
+  .goshuin-card {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-actions {
+    flex-direction: row;
+    margin-left: auto;
+  }
+
+  /* ボタンを大きく（タップしやすく） */
+  button[type="submit"],
+  #get-location-btn {
+    padding: 16px;
+    font-size: 1.1rem;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  textarea {
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  /* 地図の高さ調整 */
+  #map {
+    height: 300px;
+  }
+
+  /* モーダル */
+  .modal-content {
+    padding: 20px 16px;
+    width: 95%;
+  }
+}

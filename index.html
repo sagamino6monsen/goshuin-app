@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>御朱印コレクション</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8b0000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="御朱印">
+  <!-- Leaflet（地図ライブラリ） -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+<body>
+
+  <header>
+    <h1>⛩️ 御朱印コレクション</h1>
+    <nav>
+      <button class="tab-btn active" onclick="showTab('list')">📋 一覧</button>
+      <button class="tab-btn" onclick="showTab('map')">🗺️ 地図</button>
+      <button class="tab-btn" onclick="showTab('form')">➕ 登録</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 一覧タブ -->
+    <section id="tab-list">
+      <h2>いただいた御朱印一覧 <span id="count">0</span>件</h2>
+      <div id="goshuin-list"></div>
+    </section>
+
+    <!-- 地図タブ -->
+    <section id="tab-map" class="hidden">
+      <h2>🗺️ 参拝マップ</h2>
+      <div id="map"></div>
+    </section>
+
+    <!-- 登録タブ -->
+    <section id="tab-form" class="hidden">
+      <h2>新しい御朱印を登録</h2>
+      <form id="goshuin-form">
+        <label>神社・お寺の名前
+          <input type="text" id="shrine-name" placeholder="例：明治神宮" required>
+        </label>
+        <label>いただいた日付
+          <input type="date" id="visit-date" required>
+        </label>
+        <label>都道府県
+          <input type="text" id="location" placeholder="例：東京都">
+        </label>
+        <label>場所を取得
+          <button type="button" id="get-location-btn">📍 現在地を取得する</button>
+          <span id="location-status"></span>
+        </label>
+        <label>写真</label>
+        <div class="photo-buttons">
+          <button type="button" id="camera-btn">📷 カメラで撮影</button>
+          <button type="button" id="gallery-btn">🖼️ ギャラリーから選ぶ</button>
+        </div>
+        <input type="file" id="photo" accept="image/*" style="display:none">
+        <input type="file" id="photo-camera" accept="image/*" capture="environment" style="display:none">
+        <div id="photo-preview"></div>        
+        <label>メモ
+          <textarea id="memo" placeholder="例：初詣で訪問"></textarea>
+        </label>
+        <button type="submit">登録する</button>
+      </form>
+    </section>
+      <!-- 編集モーダル -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2>✏️ 御朱印を編集</h2>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <label>神社・お寺の名前
+          <input type="text" id="edit-shrine-name" required>
+        </label>
+        <label>いただいた日付
+          <input type="date" id="edit-visit-date" required>
+        </label>
+        <label>都道府県
+          <input type="text" id="edit-location">
+        </label>
+        <label>メモ
+          <textarea id="edit-memo"></textarea>
+        </label>
+        <div class="modal-buttons">
+          <button type="button" id="edit-cancel-btn">キャンセル</button>
+          <button type="submit">保存する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
