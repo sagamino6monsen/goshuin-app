@@ -416,6 +416,8 @@ function openEditModal(id) {
   const item = list.find(item => String(item.id) === String(id));
   if (!item) return;
 
+  // 背景スクロール禁止
+  document.body.classList.add('modal-open');
   currentEditId = item.id;
   editLat = item.lat || null;
   editLng = item.lng || null;
@@ -438,6 +440,8 @@ function openEditModal(id) {
 
 function closeEditModal() {
   document.getElementById('edit-modal').classList.add('hidden');
+  // 背景スクロール再開
+  document.body.classList.remove('modal-open');
   currentEditId = null;
   editLat = null;
   editLng = null;

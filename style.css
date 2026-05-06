@@ -239,9 +239,12 @@ button[type="submit"]:hover {
   height: 100%;
   background: rgba(0,0,0,0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px 0;
 }
 
 .modal-content {
@@ -251,6 +254,14 @@ button[type="submit"]:hover {
   width: 90%;
   max-width: 480px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  margin: auto;
+}
+
+/* モーダル表示中は背景スクロールを禁止 */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
 }
 
 .modal-content h2 {
