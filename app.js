@@ -1,19 +1,71 @@
 // ============================
-// データ管理
+// IndexedDB データ管理
 // ============================
-function loadData() {
-  const data = localStorage.getItem('goshuinList');
-  return data ? JSON.parse(data) : [];
+const DB_NAME = 'goshuinDB';
+const DB_VERSION = 1;
+const STORE = 'goshuinList';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
 }
 
-function saveData(list) {
+// localStorage → IndexedDB 移行（初回のみ）
+async function migrateFromLocalStorage() {
+  const legacy = localStorage.getItem('goshuinList');
+  if (!legacy) return;
   try {
-    localStorage.setItem('goshuinList', JSON.stringify(list));
-    return true;
-  } catch (e) {
-    alert('保存できませんでした。写真のサイズが大きすぎる可能性があります。');
-    return false;
+    const items = JSON.parse(legacy);
+    if (items.length === 0) { localStorage.removeItem('goshuinList'); return; }
+    const db = await openDB();
+    const tx = db.transaction(STORE, 'readwrite');
+    const store = tx.objectStore(STORE);
+    items.forEach(item => { item.id = Number(item.id); store.put(item); });
+    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+    localStorage.removeItem('goshuinList');
+    console.log(`${items.length}件をIndexedDBに移行しました`);
+  } catch(e) {
+    console.error('移行エラー:', e);
   }
+}
+
+async function loadData() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveItem(item) {
+  const db = await openDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).put(item);
+    req.onsuccess = () => resolve(true);
+    req.onerror = () => { alert('保存に失敗しました'); resolve(false); };
+  });
+}
+
+async function deleteItem(id) {
+  const db = await openDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).delete(Number(id));
+    req.onsuccess = () => resolve(true);
+    req.onerror = () => resolve(false);
+  });
 }
 
 // ============================
@@ -61,9 +113,9 @@ function getSortedList(list) {
 // ============================
 // 一覧表示
 // ============================
-function renderList() {
+async function renderList() {
   const keyword = (document.getElementById('search-input')?.value || '').trim();
-  let list = getSortedList(loadData());
+  let list = getSortedList(await loadData());
   if (keyword) list = list.filter(item => item.shrineName.includes(keyword));
 
   document.getElementById('count').textContent = list.length;
@@ -79,7 +131,6 @@ function renderList() {
     const card = document.createElement('div');
     card.className = 'goshuin-card';
 
-    // 複数写真対応：最初の1枚をメイン表示
     const photos = item.photos || (item.photo ? [item.photo] : []);
     const photoHtml = photos.length > 0
       ? `<div class="card-photo-wrap">
@@ -119,8 +170,8 @@ function renderList() {
 // ============================
 let mapInstance = null;
 
-function renderMap() {
-  const list = loadData().filter(item => item.lat && item.lng);
+async function renderMap() {
+  const list = (await loadData()).filter(item => item.lat && item.lng);
 
   if (!mapInstance) {
     mapInstance = L.map('map').setView([36.5, 136.0], 5);
@@ -359,7 +410,7 @@ document.getElementById('edit-photo-camera').addEventListener('change', (e) => {
 // ============================
 // 登録フォーム
 // ============================
-document.getElementById('goshuin-form').addEventListener('submit', function(e) {
+document.getElementById('goshuin-form').addEventListener('submit', async function(e) {
   e.preventDefault();
 
   const shrineName = document.getElementById('shrine-name').value.trim();
@@ -368,21 +419,22 @@ document.getElementById('goshuin-form').addEventListener('submit', function(e) {
   const city       = document.getElementById('city').value.trim();
   const memo       = document.getElementById('memo').value.trim();
 
-  const list = loadData();
+  const list = await loadData();
   const duplicate = list.find(item => item.shrineName === shrineName);
   if (duplicate) {
     if (!confirm(`「${shrineName}」はすでに登録されています。\n（${duplicate.visitDate}）\n\nそれでも登録しますか？`)) return;
   }
 
-  list.push({
+  const newItem = {
     id: Date.now(),
     shrineName, visitDate, location, city, memo,
     photos: [...selectedPhotos],
     lat: currentLat,
     lng: currentLng
-  });
+  };
 
-  if (!saveData(list)) return;
+  const ok = await saveItem(newItem);
+  if (!ok) return;
 
   document.getElementById('goshuin-form').reset();
   document.getElementById('location-status').textContent = '';
@@ -393,16 +445,16 @@ document.getElementById('goshuin-form').addEventListener('submit', function(e) {
   currentLat = null;
   currentLng = null;
 
-  renderList();
+  await renderList();
   alert(`「${shrineName}」を登録しました！`);
 });
 
 // ============================
 // 削除
 // ============================
-function deleteGoshuin(id) {
+async function deleteGoshuin(id) {
   if (!confirm('この御朱印を削除しますか？')) return;
-  saveData(loadData().filter(item => String(item.id) !== String(id)));
+  await deleteItem(id);
   renderList();
 }
 
@@ -411,8 +463,8 @@ function deleteGoshuin(id) {
 // ============================
 let currentEditId = null;
 
-function openEditModal(id) {
-  const list = loadData();
+async function openEditModal(id) {
+  const list = await loadData();
   const item = list.find(item => String(item.id) === String(id));
   if (!item) return;
 
@@ -422,7 +474,6 @@ function openEditModal(id) {
   editLat = item.lat || null;
   editLng = item.lng || null;
 
-  // 既存写真をeditPhotosにロード（新旧データ両対応）
   editPhotos = item.photos ? [...item.photos] : (item.photo ? [item.photo] : []);
 
   document.getElementById('edit-shrine-name').value = item.shrineName === '要確認' ? '' : item.shrineName;
@@ -440,7 +491,6 @@ function openEditModal(id) {
 
 function closeEditModal() {
   document.getElementById('edit-modal').classList.add('hidden');
-  // 背景スクロール再開
   document.body.classList.remove('modal-open');
   currentEditId = null;
   editLat = null;
@@ -453,39 +503,42 @@ document.getElementById('edit-modal').addEventListener('click', function(e) {
   if (e.target === this) closeEditModal();
 });
 
-document.getElementById('edit-form').addEventListener('submit', function(e) {
+document.getElementById('edit-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   if (!currentEditId) return;
 
-  const list = loadData();
-  const index = list.findIndex(item => String(item.id) === String(currentEditId));
-  if (index === -1) return;
+  const list = await loadData();
+  const item = list.find(item => String(item.id) === String(currentEditId));
+  if (!item) return;
 
   const newName = document.getElementById('edit-shrine-name').value.trim();
   const newDate = document.getElementById('edit-visit-date').value;
-  list[index].shrineName = newName || '要確認';
-  list[index].visitDate  = newDate || '要確認';
-  list[index].location   = document.getElementById('edit-location').value.trim();
-  list[index].city       = document.getElementById('edit-city').value.trim();
-  list[index].memo       = document.getElementById('edit-memo').value.trim();
-  list[index].photos     = [...editPhotos];
-  list[index].needsReview = !newName || !newDate;
-  if (editLat) { list[index].lat = editLat; list[index].lng = editLng; }
 
-  saveData(list);
+  const updatedItem = {
+    ...item,
+    shrineName: newName || '要確認',
+    visitDate:  newDate || '要確認',
+    location:   document.getElementById('edit-location').value.trim(),
+    city:       document.getElementById('edit-city').value.trim(),
+    memo:       document.getElementById('edit-memo').value.trim(),
+    photos:     [...editPhotos],
+    needsReview: !newName || !newDate
+  };
+  if (editLat) { updatedItem.lat = editLat; updatedItem.lng = editLng; }
+
+  await saveItem(updatedItem);
   closeEditModal();
-  renderList();
+  await renderList();
   alert('更新しました！');
 });
 
 // ============================
 // エクスポート機能
 // ============================
-document.getElementById('export-btn').addEventListener('click', () => {
-  const list = loadData();
+document.getElementById('export-btn').addEventListener('click', async () => {
+  const list = await loadData();
   if (list.length === 0) { alert('エクスポートするデータがありません'); return; }
 
-  // 写真データを除いた軽量版と写真込み版を選択
   const json = JSON.stringify(list, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -494,7 +547,7 @@ document.getElementById('export-btn').addEventListener('click', () => {
   a.download = `goshuin_backup_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  alert(`${list.length}件のデータをエクスポートしました！\nGoogle Driveに保存してスマホでインポートしてください。`);
+  alert(`${list.length}件のデータをエクスポートしました！`);
 });
 
 // ============================
@@ -504,49 +557,46 @@ document.getElementById('import-btn').addEventListener('click', () => {
   document.getElementById('import-file').click();
 });
 
-document.getElementById('import-file').addEventListener('change', (e) => {
+document.getElementById('import-file').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (ev) => {
+  reader.onload = async (ev) => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (!Array.isArray(data)) { alert('JSONの形式が正しくありません。\n配列形式のJSONファイルを選択してください。'); return; }
+      if (!Array.isArray(data)) { alert('JSONの形式が正しくありません。'); return; }
 
-      const list = loadData();
       let count = 0;
       let reviewCount = 0;
 
-      data.forEach(entry => {
+      for (const entry of data) {
         const shrineName = (entry.shrineName && entry.shrineName.trim()) ? entry.shrineName.trim() : '要確認';
         const visitDate  = (entry.visitDate  && entry.visitDate.trim())  ? entry.visitDate.trim()  : '要確認';
         const needsReview = (shrineName === '要確認' || visitDate === '要確認');
         if (needsReview) reviewCount++;
 
-        list.push({
-          id: Date.now() + Math.floor(Math.random() * 100000),
+        await saveItem({
+          id:          Number(entry.id) || Date.now() + Math.floor(Math.random() * 100000),
           shrineName,
           visitDate,
-          location: entry.location || '',
-          city:     entry.city     || '',
-          memo:     entry.memo     || '',
-          photos:   Array.isArray(entry.photos) ? entry.photos : [],
-          lat:      entry.lat  || null,
-          lng:      entry.lng  || null,
+          location:    entry.location || '',
+          city:        entry.city     || '',
+          memo:        entry.memo     || '',
+          photos:      Array.isArray(entry.photos) ? entry.photos : [],
+          lat:         entry.lat  || null,
+          lng:         entry.lng  || null,
           needsReview
         });
         count++;
-      });
+      }
 
-      if (!saveData(list)) return;
-      renderList();
-
+      await renderList();
       const msg = reviewCount > 0
         ? `${count}件をインポートしました！\n⚠️ ${reviewCount}件は「要確認」があります。\n編集ボタン（✏️）で内容を修正してください。`
         : `${count}件をインポートしました！`;
       alert(msg);
     } catch (err) {
-      alert('ファイルの読み込みに失敗しました。\nJSONファイルの形式を確認してください。');
+      alert('ファイルの読み込みに失敗しました。JSONファイルを確認してください。');
     }
     e.target.value = '';
   };
@@ -554,30 +604,31 @@ document.getElementById('import-file').addEventListener('change', (e) => {
 });
 
 // ============================
-// 初期表示
-// ============================
-renderList();
-
-// ============================
 // Service Worker（自動更新）
 // ============================
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/goshuin-app/sw.js')
     .then(reg => {
-      // 新しいバージョンが見つかったら自動で更新チェック
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'activated') {
-            // 新バージョンが有効になったら自動リロード
             window.location.reload();
           }
         });
       });
     });
 
-  // 別タブで更新された場合もリロード
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload();
   });
 }
+
+// ============================
+// 初期化
+// ============================
+async function init() {
+  await migrateFromLocalStorage(); // localStorageから自動移行
+  await renderList();
+}
+init();
