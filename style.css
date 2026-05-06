@@ -586,13 +586,14 @@ button[type="submit"]:hover {
   border-radius: 10px;
 }
 
-/* インポートボタン */
+/* インポート・エクスポートボタン */
 .import-area {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 }
 
-#import-btn {
+#import-btn, #export-btn {
   background: white;
   color: var(--navy);
   border: 1.5px solid var(--navy);
@@ -603,7 +604,7 @@ button[type="submit"]:hover {
   transition: all 0.2s;
 }
 
-#import-btn:hover {
+#import-btn:hover, #export-btn:hover {
   background: var(--navy);
   color: white;
 }

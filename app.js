@@ -475,6 +475,25 @@ document.getElementById('edit-form').addEventListener('submit', function(e) {
 });
 
 // ============================
+// エクスポート機能
+// ============================
+document.getElementById('export-btn').addEventListener('click', () => {
+  const list = loadData();
+  if (list.length === 0) { alert('エクスポートするデータがありません'); return; }
+
+  // 写真データを除いた軽量版と写真込み版を選択
+  const json = JSON.stringify(list, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `goshuin_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  alert(`${list.length}件のデータをエクスポートしました！\nGoogle Driveに保存してスマホでインポートしてください。`);
+});
+
+// ============================
 // インポート機能
 // ============================
 document.getElementById('import-btn').addEventListener('click', () => {
