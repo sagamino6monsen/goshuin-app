@@ -557,3 +557,27 @@ document.getElementById('import-file').addEventListener('change', (e) => {
 // 初期表示
 // ============================
 renderList();
+
+// ============================
+// Service Worker（自動更新）
+// ============================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/goshuin-app/sw.js')
+    .then(reg => {
+      // 新しいバージョンが見つかったら自動で更新チェック
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'activated') {
+            // 新バージョンが有効になったら自動リロード
+            window.location.reload();
+          }
+        });
+      });
+    });
+
+  // 別タブで更新された場合もリロード
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
