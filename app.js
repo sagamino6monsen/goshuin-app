@@ -48,9 +48,10 @@ function sortList(sortType, e) {
 
 function getSortedList(list) {
   const sorted = [...list];
+  const dateVal = (d) => (d === '要確認' || !d) ? '0000-00-00' : d;
   switch (currentSort) {
-    case 'date-desc': return sorted.sort((a, b) => b.visitDate.localeCompare(a.visitDate));
-    case 'date-asc':  return sorted.sort((a, b) => a.visitDate.localeCompare(b.visitDate));
+    case 'date-desc': return sorted.sort((a, b) => dateVal(b.visitDate).localeCompare(dateVal(a.visitDate)));
+    case 'date-asc':  return sorted.sort((a, b) => dateVal(a.visitDate).localeCompare(dateVal(b.visitDate)));
     case 'name':      return sorted.sort((a, b) => a.shrineName.localeCompare(b.shrineName, 'ja'));
     case 'location':  return sorted.sort((a, b) => (a.location || '').localeCompare(b.location || '', 'ja'));
     default: return sorted;
@@ -91,12 +92,15 @@ function renderList() {
     const coordsHtml = item.lat
       ? `<p>🗺️ <a href="https://maps.google.com/?q=${item.lat},${item.lng}" target="_blank">地図で見る</a></p>`
       : '';
+    const reviewBadge = item.needsReview
+      ? '<span class="review-badge">⚠️ 要確認</span>'
+      : '';
 
     card.innerHTML = `
       ${photoHtml}
       <div class="card-info">
-        <h3>${item.shrineName}</h3>
-        <p>📅 ${item.visitDate}</p>
+        <h3>${reviewBadge}${item.shrineName}</h3>
+        <p>📅 ${item.visitDate === '要確認' ? '⚠️ 日付未確認' : item.visitDate}</p>
         <p>📍 ${locationText || '場所未登録'}</p>
         ${coordsHtml}
         <p>${item.memo || ''}</p>
@@ -419,8 +423,8 @@ function openEditModal(id) {
   // 既存写真をeditPhotosにロード（新旧データ両対応）
   editPhotos = item.photos ? [...item.photos] : (item.photo ? [item.photo] : []);
 
-  document.getElementById('edit-shrine-name').value = item.shrineName;
-  document.getElementById('edit-visit-date').value = item.visitDate;
+  document.getElementById('edit-shrine-name').value = item.shrineName === '要確認' ? '' : item.shrineName;
+  document.getElementById('edit-visit-date').value = (item.visitDate === '要確認' || !item.visitDate) ? '' : item.visitDate;
   document.getElementById('edit-location').value = item.location || '';
   document.getElementById('edit-city').value = item.city || '';
   document.getElementById('edit-memo').value = item.memo || '';
@@ -453,18 +457,77 @@ document.getElementById('edit-form').addEventListener('submit', function(e) {
   const index = list.findIndex(item => String(item.id) === String(currentEditId));
   if (index === -1) return;
 
-  list[index].shrineName = document.getElementById('edit-shrine-name').value.trim();
-  list[index].visitDate  = document.getElementById('edit-visit-date').value;
+  const newName = document.getElementById('edit-shrine-name').value.trim();
+  const newDate = document.getElementById('edit-visit-date').value;
+  list[index].shrineName = newName || '要確認';
+  list[index].visitDate  = newDate || '要確認';
   list[index].location   = document.getElementById('edit-location').value.trim();
   list[index].city       = document.getElementById('edit-city').value.trim();
   list[index].memo       = document.getElementById('edit-memo').value.trim();
   list[index].photos     = [...editPhotos];
+  list[index].needsReview = !newName || !newDate;
   if (editLat) { list[index].lat = editLat; list[index].lng = editLng; }
 
   saveData(list);
   closeEditModal();
   renderList();
   alert('更新しました！');
+});
+
+// ============================
+// インポート機能
+// ============================
+document.getElementById('import-btn').addEventListener('click', () => {
+  document.getElementById('import-file').click();
+});
+
+document.getElementById('import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) { alert('JSONの形式が正しくありません。\n配列形式のJSONファイルを選択してください。'); return; }
+
+      const list = loadData();
+      let count = 0;
+      let reviewCount = 0;
+
+      data.forEach(entry => {
+        const shrineName = (entry.shrineName && entry.shrineName.trim()) ? entry.shrineName.trim() : '要確認';
+        const visitDate  = (entry.visitDate  && entry.visitDate.trim())  ? entry.visitDate.trim()  : '要確認';
+        const needsReview = (shrineName === '要確認' || visitDate === '要確認');
+        if (needsReview) reviewCount++;
+
+        list.push({
+          id: Date.now() + Math.floor(Math.random() * 100000),
+          shrineName,
+          visitDate,
+          location: entry.location || '',
+          city:     entry.city     || '',
+          memo:     entry.memo     || '',
+          photos:   Array.isArray(entry.photos) ? entry.photos : [],
+          lat:      entry.lat  || null,
+          lng:      entry.lng  || null,
+          needsReview
+        });
+        count++;
+      });
+
+      if (!saveData(list)) return;
+      renderList();
+
+      const msg = reviewCount > 0
+        ? `${count}件をインポートしました！\n⚠️ ${reviewCount}件は「要確認」があります。\n編集ボタン（✏️）で内容を修正してください。`
+        : `${count}件をインポートしました！`;
+      alert(msg);
+    } catch (err) {
+      alert('ファイルの読み込みに失敗しました。\nJSONファイルの形式を確認してください。');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
 });
 
 // ============================
