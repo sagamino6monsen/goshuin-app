@@ -1,4 +1,4 @@
-const CACHE = 'goshuin-v2';
+const CACHE = 'goshuin-v3';
 const FILES = ['/', '/index.html', '/style.css', '/app.js', '/manifest.json', '/icon.png'];
 
 self.addEventListener('install', e => {
